@@ -521,7 +521,7 @@ export function createHeadInjector(ctx = {}) {
       const rest = Buffer.concat(pending);
       pending = [];
       done = true;
-      return [Buffer.from(apply(rest.toString(\"utf8\")), \"utf8\")];
+      return [Buffer.from(apply(rest.toString("utf8")), "utf8")];
     },
   };
-}
+    }
