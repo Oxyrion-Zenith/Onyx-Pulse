@@ -27,6 +27,22 @@ const SPEED_DIAL = [
   { title: "Open Library", url: "https://openlibrary.org/" },
 ];
 
+const SEARCH_HOSTS = new Set([
+  "search.brave.com",
+  "duckduckgo.com",
+  "www.duckduckgo.com",
+  "startpage.com",
+  "www.startpage.com",
+]);
+
+function isSearchUrl(href: string): boolean {
+  try {
+    return SEARCH_HOSTS.has(new URL(href).hostname);
+  } catch {
+    return false;
+  }
+}
+
 export function BrowserView() {
   const tabs = useAppStore((s) => s.tabs);
   const activeTabId = useAppStore((s) => s.activeTabId);
@@ -75,6 +91,16 @@ export function BrowserView() {
   function navigate(raw: string, push = true) {
     if (!tab) return;
     const href = normalizeUrl(raw) || braveSearchUrl(raw, settings.searchEngine);
+
+    if (isSearchUrl(href)) {
+      // Search engines are JS-heavy and don't render through the in-app proxy —
+      // open them in the device's real browser instead.
+      window.open(href, "_blank", "noopener,noreferrer");
+      pushHistory({ id: uid("hist"), title: `Search: ${raw}`, url: href, createdAt: Date.now() });
+      setDraft("");
+      return;
+    }
+
     updateTab(tab.id, { url: href, title: hostnameOf(href), loading: true });
     if (push) {
       const next = [...historyStack.slice(0, histIndex + 1), href];
@@ -215,7 +241,7 @@ export function BrowserView() {
           <Input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Search Brave or enter address"
+            placeholder="Enter a site address (search opens in your browser)"
             className="h-10 border-0 bg-transparent shadow-none focus-visible:ring-0"
           />
         </form>
@@ -271,7 +297,7 @@ function NewTab({
         <Shield className="size-8" strokeWidth={1.6} />
       </div>
       <h2 className="font-display text-2xl font-semibold">Onyx Browser</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Brave Search · Shields on by default</p>
+      <p className="mt-1 text-sm text-muted-foreground">Search opens in your device browser · static pages load here</p>
       <form
         className="mt-6 w-full"
         onSubmit={(e) => {
@@ -317,4 +343,4 @@ function NewTab({
       ) : null}
     </div>
   );
-}
+    }
