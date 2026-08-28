@@ -157,6 +157,18 @@ export function renderInstallPageHtml(template, { host, url } = {}) {
     .replaceAll("{{APP_URL}}", escapeHtml(stripInstallParams(url)));
 }
 
+/**
+ * Manifest icon set. 192 + 512 are the sizes PWA install checks (Chrome's
+ * installability criteria, PWABuilder's manifest audit) actually look for;
+ * 180 doubles as the iOS apple-touch-icon fallback for browsers that read
+ * it out of the manifest instead of the <link> tag.
+ */
+const MANIFEST_ICON_SIZES = [
+  { src: "/__grok/icon-192.png", sizes: "192x192" },
+  { src: "/__grok/icon-512.png", sizes: "512x512" },
+  { src: "/__grok/icon-180.png", sizes: "180x180" },
+];
+
 export function renderWebManifest(hostHeader) {
   const name = appNameFromHost(hostHeader);
   return JSON.stringify(
@@ -169,13 +181,12 @@ export function renderWebManifest(hostHeader) {
       display: "standalone",
       background_color: "#000000",
       theme_color: "#000000",
-      icons: [
-        {
-          src: "/__grok/icon-180.png",
-          sizes: "180x180",
-          type: "image/png",
-        },
-      ],
+      icons: MANIFEST_ICON_SIZES.map(({ src, sizes }) => ({
+        src,
+        sizes,
+        type: "image/png",
+        purpose: "any",
+      })),
     },
     null,
     2,
@@ -524,4 +535,4 @@ export function createHeadInjector(ctx = {}) {
       return [Buffer.from(apply(rest.toString("utf8")), "utf8")];
     },
   };
-    }
+}0
